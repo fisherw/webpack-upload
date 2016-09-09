@@ -28,6 +28,9 @@ new WebpackUploadPlugin({
 };
 ```
 
+##关于接收端接口服务
+receiver对应的上传接口正常响应的返回内容为: "0"，否则插件认为上传失败。
+
 ###完整配置
 ```javascript
 var path = require('path'),
