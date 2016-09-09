@@ -4,8 +4,7 @@ webpack 部署插件，可上传到远程服务器或cdn服务进行部署。
 
 ## 安装
 
-全局安装或者本地安装都可以。
-
+全局安装或者本地安装:
 ```
 npm install --save webpack-upload
 ```
@@ -13,7 +12,23 @@ npm install --save webpack-upload
 ## 使用方法
 
 作为webpack插件进行配置
+###创建插件对象方式
+```javascript
+new WebpackUploadPlugin({
+  //配置receiver，插件会把文件逐个post到接收端上
+  receiver: 'http://127.0.0.1/receiver?debug=false',
+  //这个参数会跟随post请求一起发送
+  to: '/home/static/www',
+  // to: '/Users/static/www',
+  // 附加参数, 后端通过post参数形式获取
+  data: {
+    key1: value1,
+    key2: value2
+  }
+};
+```
 
+###完整配置
 ```javascript
 var path = require('path'),
     webpack = require('webpack'),
@@ -50,26 +65,24 @@ module.exports = {
 
 ## 扩展参数使用方法
 
-如上传时需要token参数
+如上传时需要token参数:
 
 ```javascript
+// 创建token
+projectToken = generateToken();
 
-    // 创建token
-    projectToken = generateToken();
-  
-    // new 插件对象
-    // 将token作为附加参数放入data中
-    new WebpackUploadPlugin({
-      //如果配置了receiver，插件会把文件逐个post到接收端上
-      receiver: 'http://127.0.0.1/receiver?debug=false',
-      //这个参数会跟随post请求一起发送
-      to: '/home/static/www',
-      // to: '/Users/static/www',
-      // 附加参数, 后端通过post参数形式获取
-      data: {
-        token: projectToken
-      }
-    };
-  ]
+// new 插件对象
+// 将token作为附加参数放入data中
+new WebpackUploadPlugin({
+  //如果配置了receiver，插件会把文件逐个post到接收端上
+  receiver: 'http://127.0.0.1/receiver?debug=false',
+  //这个参数会跟随post请求一起发送
+  to: '/home/static/www',
+  // to: '/Users/static/www',
+  // 附加参数, 后端通过post参数形式获取
+  data: {
+    token: projectToken
+  }
+};
 });
 ```
