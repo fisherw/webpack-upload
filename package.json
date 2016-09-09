@@ -1,0 +1,36 @@
+{
+  "name": "webpack-upload",
+  "version": "1.0.0",
+  "description": "webpack plugin which upload (use http/https) compiled resouces to remote server (disk)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fisherw/webpack-upload.git"
+  },
+  "author": "fisher <wangjiang.fly.1989@163.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fisherw/webpack-upload/issues"
+  },
+  "homepage": "https://github.com/fisherw/webpack-upload#readme",
+  "dependencies": {
+    "async": "^2.0.1",
+    "colors": "^1.1.2",
+    "underscore": "^1.8.3",
+    "url": "^0.11.0"
+  },
+  "keywords": [
+    "webpack",
+    "http",
+    "upload",
+    "remote upload",
+    "cdn",
+    "url",
+    "plugin"
+  ],
+  "author": "fisher <wangjiang.fly.1989@163.com>",
+  "license": "ISC"
+}
