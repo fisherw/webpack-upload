@@ -228,7 +228,6 @@ function _map(obj, callback, merge) {
  * @param  {String} url 待解析的url
  * @param  {Object} opt 解析配置参数 { host|hostname, port, path, method, agent }
  * @return {Object}     { protocol, host, port, path, method, agent }
- * @memberOf fis.util
  * @name parseUrl
  * @function
  */
