@@ -63,14 +63,14 @@ WebpackUpload.prototype.apply = function (compiler) {
             }
         }.bind(this));
 
-        console.log('--------begin upload compiled source--------');
+        console.log('\n--------begin upload compiled resources--------');
         async.series(steps, function (err, results) {
             if (err) {
                 console.error(err);
                 callback(err);
             }
             
-            console.log('upload finish!');
+            console.log('\n--------upload finish!--------');
             callback();
             
         });
