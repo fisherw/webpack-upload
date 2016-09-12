@@ -17,12 +17,12 @@ function WebpackUpload (options) {
 }
 
 
-WebpackUpload.prototype.apply = function (compiler, callback) {
+WebpackUpload.prototype.apply = function (compiler) {
     var wpUploadOptions = this.wpUploadOptions;
-    compiler.plugin('after-emit', function (compilation) {
+    compiler.plugin('after-emit', function (compilation, callback) {
 
         var steps = [];
-        async.forEach(Object.keys(compilation.assets), function(file, callback) {
+        async.forEach(Object.keys(compilation.assets), function(file, cb) {
             var reTryCount = wpUploadOptions.retry,
                 receiver = wpUploadOptions.receiver,
                 to = wpUploadOptions.to,
@@ -58,17 +58,21 @@ WebpackUpload.prototype.apply = function (compiler, callback) {
 
         }.bind(this), function(err) {
             if(err) {
+                console.error(err);
                 return callback(err);
             }
-
-            callback();
         }.bind(this));
 
         console.log('--------begin upload compiled source--------');
         async.series(steps, function (err, results) {
-            if (!err) {
-                console.log('upload finish!');
+            if (err) {
+                console.error(err);
+                callback(err);
             }
+            
+            console.log('upload finish!');
+            callback();
+            
         });
     });
 };
