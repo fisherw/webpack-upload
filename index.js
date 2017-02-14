@@ -88,6 +88,9 @@ function _upload (receiver, to, data, content, filepath, filename, callback) {
     
     data['to'] = path.join(to, filename);
 
+    data['to'] = data['to'].replace(/\\\\/, '/');
+    data['to'] = data['to'].replace(/\\/, '/');
+
     _uploadFile(
         //url, request options, post data, file
         receiver, null, data, content, filename,
