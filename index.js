@@ -84,7 +84,9 @@ WebpackUpload.prototype.apply = function (compiler) {
  * @param fileName
  */
 function _upload (receiver, to, data, content, filepath, filename, callback) {
-    data['to'] = path.resolve(to, filename);
+    // data['to'] = path.resolve(to, filename);
+    
+    data['to'] = path.join(to, filename);
 
     _uploadFile(
         //url, request options, post data, file
