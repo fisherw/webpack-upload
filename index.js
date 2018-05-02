@@ -34,8 +34,9 @@ WebpackUpload.prototype.apply = function (compiler) {
                 targetFile = targetFile.substr(0, queryStringIdx);
             }
 
-            var outputPath = compilation.getPath(this.outputPath),
-                targetPath = this.outputFileSystem.join(outputPath, targetFile),
+            var outputPath = compilation.getPath(this.outputPath || compiler.outputPath),
+                outputFileSystem = this.outputFileSystem || compiler.outputFileSystem,
+                targetPath = outputFileSystem.join(outputPath, targetFile),
                 source = compilation.assets[file],
                 content = source.source();
 
