@@ -24,17 +24,17 @@ function WebpackUpload (options) {
 
     this.wpUploadOptions.retry = this.wpUploadOptions.retry || 2;
     
-    this.wpUploadOptions.keepLocal = true;
-    if ('undefined' !== typeof options.keepLocal) {
-        this.wpUploadOptions.keepLocal = !!options.keepLocal;
+    
+    if ('undefined' === typeof this.wpUploadOptions.keepLocal) {
+        this.wpUploadOptions.keepLocal = true;
     }
 }
 
 
 WebpackUpload.prototype.apply = function (compiler) {
     var wpUploadOptions = this.wpUploadOptions;
-    compiler.plugin('emit', function (compilation, callback) {
 
+    var onEmit = function (compilation, callback) {        
         var steps = [];
         async.forEach(Object.keys(compilation.assets), function(file, cb) {
                 // 重试次数
@@ -76,11 +76,10 @@ WebpackUpload.prototype.apply = function (compiler) {
                 });
             });
 
-            // 不保存编译后文件到本地
             if (!wpUploadOptions.keepLocal) {
-                delete compilation.assets[file];
+                compilation.assets[file].existsAt = targetPath;
+                compilation.assets[file].emitted = true;
             }
-
         }.bind(this), function(err) {
             if(err) {
                 console.error(err);
@@ -98,7 +97,9 @@ WebpackUpload.prototype.apply = function (compiler) {
             console.log('\n--------upload finish!--------\n');
             callback();
         });
-    });
+    };
+
+    compiler.plugin('emit', onEmit);
 };
 
 
