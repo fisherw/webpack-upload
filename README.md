@@ -1,6 +1,6 @@
 # webpack 远程部署（上传）插件
 
-webpack 部署插件，可上传到远程服务器或cdn服务进行部署。
+webpack 部署插件，可上传静态资源（html文件除外）到远程服务器或cdn服务进行部署。
 
 ## 安装
 
@@ -94,16 +94,22 @@ new WebpackUploadPlugin({
 });
 ```
 
-#参数配置
-##调用形式：new WebpackUploadPlugin(options)
+# 参数配置
 
-##options
+## 调用形式：new WebpackUploadPlugin(options)
+
+## options
 Object
-###options.receiver（必填）
+
+### options.receiver（必填）
 (String)上传服务接口地址, 用于接收上传的文件资源。
-###options.to (必填)
+
+### options.to (必填)
 (String)上传资源时的指定文件上传路径。该参数由上传接口服务决定是否使用，若不需要，可设置为随意非空的值。
 
-###options.data（非必填）
+### options.keepLocal(非必填)
+{Boolean} 是否在本地保留编译后静态资源文件（html文件除外），默认true
+
+### options.data（非必填）
 (Object)上传资源时附带参数(post参数)，可用于上传时的一些校验或其它处理参数的传递。
 
