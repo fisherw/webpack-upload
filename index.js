@@ -4,6 +4,15 @@ var async = require('async'),
     colors = require('colors'),
     _ = require('underscore');
 
+/**
+ * webpack编译完成后静态资源上传（CDN)
+ * @param {Object} options = {
+ *      receiver: {String}  上传服务地址
+ *      to: {String} 上传路径
+ *      data: {Object} 上传时额外的参数
+ *      keepLocal: {Boolean} 是否在本地保留编译后静态资源文件，默认true
+ * }
+ */
 function WebpackUpload (options) {
     this.wpUploadOptions = options || {};
 
@@ -14,36 +23,46 @@ function WebpackUpload (options) {
     }
 
     this.wpUploadOptions.retry = this.wpUploadOptions.retry || 2;
+    
+    this.wpUploadOptions.keepLocal = true;
+    if ('undefined' !== typeof options.keepLocal) {
+        this.wpUploadOptions.keepLocal = !!options.keepLocal;
+    }
 }
 
 
 WebpackUpload.prototype.apply = function (compiler) {
     var wpUploadOptions = this.wpUploadOptions;
-    compiler.plugin('after-emit', function (compilation, callback) {
+    compiler.plugin('emit', function (compilation, callback) {
 
         var steps = [];
         async.forEach(Object.keys(compilation.assets), function(file, cb) {
+                // 重试次数
             var reTryCount = wpUploadOptions.retry,
-                receiver = wpUploadOptions.receiver,
-                to = wpUploadOptions.to,
-                data = wpUploadOptions.data || {},
+                // 目标文件名
                 targetFile = file,
                 queryStringIdx = targetFile.indexOf("?");
 
+            // 去掉search参数
             if(queryStringIdx >= 0) {
                 targetFile = targetFile.substr(0, queryStringIdx);
             }
 
+
             var outputPath = compilation.getPath(this.outputPath || compiler.outputPath),
                 outputFileSystem = this.outputFileSystem || compiler.outputFileSystem,
                 targetPath = outputFileSystem.join(outputPath, targetFile),
-                source = compilation.assets[file],
-                content = source.source();
+                content = compilation.assets[file].source();
+
+            // html不上传
+            if (/\.html$/.test(targetFile)) {
+                return;
+            }
 
             steps.push(function (cb) {
                 var _step = arguments.callee;
 
-                _upload(receiver, to, data, content, targetPath, targetFile, function (error, re) {
+                _upload(wpUploadOptions.receiver, wpUploadOptions.to, wpUploadOptions.data, content, targetPath, targetFile, function (error, re) {
                    if (error) {
                        if (wpUploadOptions.retry && !--reTryCount) {
                            throw new Error(error);
@@ -57,23 +76,27 @@ WebpackUpload.prototype.apply = function (compiler) {
                 });
             });
 
+            // 不保存编译后文件到本地
+            if (!wpUploadOptions.keepLocal) {
+                delete compilation.assets[file];
+            }
+
         }.bind(this), function(err) {
             if(err) {
                 console.error(err);
                 return callback(err);
             }
-        }.bind(this));
+        });
 
-        console.log('\n--------begin upload compiled resources--------');
+        console.log('\n--------begin upload compiled resources--------\n');
         async.series(steps, function (err, results) {
             if (err) {
                 console.error(err);
                 callback(err);
             }
             
-            console.log('\n--------upload finish!--------');
+            console.log('\n--------upload finish!--------\n');
             callback();
-            
         });
     });
 };
@@ -81,16 +104,22 @@ WebpackUpload.prototype.apply = function (compiler) {
 
 /**
  * 上传文件到远程服务
- * @param filePath
- * @param fileName
+ * @param {String} receiver 上传服务地址
+ * @param {String} to 上传到远程的文件目录路径
+ * @param {Object} data 上传时额外参数
+ * @param {String | Buffer} content 上传的文件内容
+ * @param {String} filepath 上传前的文件完整路径（包含文件名）
+ * @param {String} filename 上传前的文件相对（相对于webpack环境）路径（包含文件名）
+ * @param {Function} callback 上传结果回调
  */
 function _upload (receiver, to, data, content, filepath, filename, callback) {
-    // data['to'] = path.resolve(to, filename);
-    
+    data = data || {};
+
+    // 拼接获取远程上传的完整地址
     data['to'] = path.join(to, filename);
 
-    data['to'] = data['to'].replace(/\\\\/g, '/');
-    data['to'] = data['to'].replace(/\\/g, '/');
+    // 路径兼容windows以及linux(or macos)
+    data['to'] = data['to'].replace(/\\\\/g, '/').replace(/\\/g, '/');
 
     _uploadFile(
         //url, request options, post data, file
@@ -119,13 +148,14 @@ function _upload (receiver, to, data, content, filepath, filename, callback) {
  * @param  {String}   url      上传的url
  * @param  {Object}   opt      配置
  * @param  {Object}   data     要上传的formdata，可传null
- * @param  {String}   content  上传文件的内容
+ * @param  {String | Buffer}   content  上传文件的内容
  * @param  {String}   subpath  上传文件的文件名
  * @param  {Function} callback 上传后的回调
  * @name upload
  * @function
  */
 function _uploadFile (url, opt, data, content, subpath, callback) {
+    // utf8编码
     if (typeof content === 'string') {
         content = new Buffer(content, 'utf8');
     } else if (!(content instanceof Buffer)) {

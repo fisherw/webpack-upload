@@ -1,6 +1,6 @@
 {
   "name": "webpack-upload",
-  "version": "1.1.2",
+  "version": "2.0.0",
   "description": "webpack plugin which upload (use http/https) compiled resouces to remote server (disk)",
   "main": "index.js",
   "scripts": {
