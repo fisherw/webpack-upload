@@ -11,6 +11,12 @@ var async = require('async'),
  *      to: {String} 上传路径
  *      data: {Object} 上传时额外的参数
  *      keepLocal: {Boolean} 是否在本地保留编译后静态资源文件，默认true
+ *      test: {RegExp|Function} 上传过滤条件，符合条件的资源会进行cdn上传，进行匹配的字段为文件的全路径（包含文件名），如：
+ *          文件路径为：  /a/b/c.js
+ *          test:  /\.html$/     ---- 不上传/a/b/c.js
+ *          test: function(filepath) {       ---上传/a/b/c.js
+ *              return filepath.indexOf('c.js') > -1;
+ *          }
  * }
  */
 function WebpackUpload (options) {
@@ -54,8 +60,23 @@ WebpackUpload.prototype.apply = function (compiler) {
                 targetPath = outputFileSystem.join(outputPath, targetFile),
                 content = compilation.assets[file].source();
 
-            // html不上传
-            if (/\.html$/.test(targetFile)) {
+            if (!wpUploadOptions.keepLocal && !/\.html$/.test(targetFile)) {
+                compilation.assets[file].existsAt = targetPath;
+                compilation.assets[file].emitted = true;
+            }
+
+            // 过滤条件为函数
+            if ('function' === typeof wpUploadOptions.test) {
+                if (!wpUploadOptions.test(targetFile)) {
+                    return;
+                }
+            // 过滤条件为正则
+            } else if (Object.prototype.toString.call(wpUploadOptions.test) === '[object RegExp]') {
+                if (!wpUploadOptions.test.test(targetFile)) {
+                    return;
+                }
+            // 默认不上传html
+            } else if (/\.html$/.test(targetFile)) {
                 return;
             }
 
@@ -75,11 +96,6 @@ WebpackUpload.prototype.apply = function (compiler) {
                    }
                 });
             });
-
-            if (!wpUploadOptions.keepLocal) {
-                compilation.assets[file].existsAt = targetPath;
-                compilation.assets[file].emitted = true;
-            }
         }.bind(this), function(err) {
             if(err) {
                 console.error(err);
