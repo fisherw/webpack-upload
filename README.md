@@ -64,7 +64,11 @@ module.exports = {
             // 指定上传目录
             to: '/receiver_dir/static',
             // 是否在本地保留编译后静态资源文件，默认true
-            keepLocal: true
+            keepLocal: true,
+            // 过滤函数--只上传文件名包含c.js的静态资源
+            test: function(filepath) {      
+                return filepath.indexOf('c.js') > -1;
+            }
         }),
         new webpack.BannerPlugin('This file is created by fisher')
     ]

@@ -75,7 +75,6 @@ WebpackUpload.prototype.apply = function (compiler) {
                 if (!wpUploadOptions.test.test(targetFile)) {
                     return;
                 }
-            // 默认不上传html
             } else if (/\.html$/.test(targetFile)) {
                 return;
             }
